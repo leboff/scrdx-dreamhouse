@@ -40,7 +40,17 @@ gulp.task('check:fields', () => {
 })
 
 gulp.task('watch', () => {
-    gulp.watch('**/*.field-meta.xml', ['check:fields'])
+    gulp.watch('**/*.field-meta.xml', ['check:fields']);
+    gulp.watch('**/*Test*.cls').on('change', function(file) {
+        var testclass= file.path.replace(/(^.*[\\\/]/, '').replace(/\.cls$/, '')
+        console.log(testclass+ ' test class changed, running tests');
+        sfdx.apex.testRun({
+          'classnames': testclass,
+          'wait': 'true',
+          'resultformat': 'human'
+        });
+    });
+
 })
 
 
