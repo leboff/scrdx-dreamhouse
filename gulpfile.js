@@ -32,6 +32,10 @@ gulp.task('pull', () => {
     return sourcePull();
 });
 
+gulp.task('push', () => {
+    return sourcePush();
+});
+
 gulp.task('check:fields', () => {
     return gulp.src('**/*.field-meta.xml')
     .pipe(xml({outType: false}))
@@ -56,7 +60,22 @@ const sourcePull = () => {
 }
 
 const sourcePush = () => {
-    return sfdx.source.push();
+    return sfdx.source.push().then(function(pushed) {
+        var testsToRun = [];
+        for (var i = 0; i < pushed.length; i++) {
+            if (pushed[i].fullName.includes('Test')) {
+                testsToRun.push(pushed[i].fullName);
+            }
+        }
+
+        if (testsToRun.length > 0) {
+            sfdx.apex.testRun({
+                'classnames': testToRun, // XXX is this the right format? i think it needs to be comma separated
+                'resultFormat': 'human',
+                'wait': 'true'
+            });
+        }
+    });
 }
 
 const assignPermissionSet = (permsetname = 'DreamHouse') => {
