@@ -40,9 +40,27 @@ gulp.task('check:fields', () => {
 })
 
 gulp.task('watch', () => {
-    gulp.watch('**/*.field-meta.xml', ['check:fields'])
+    gulp.watch('**/*.field-meta.xml', ['check:fields']);
+    gulp.watch('**/*.cls', function(ev) {
+        if (ev.type === 'added' || ev.type === 'changed') {
+            checkForTabsFile(ev.path);
+        }
+    });
 })
 
+function checkForTabsFile(file) {
+    gulp.src(file)
+        .pipe(checkForTabs());
+}
+
+const checkForTabs = () => {
+    return validateXML((file) => {
+        if(file.contents.toString().includes('\t')) {
+            warn('Tab', `Tab`, 'Tabs found', path.relative('src', file.path))
+
+        }
+    });
+}
 
 const createScratchOrg = (definitionfile = 'config/project-scratch-def.json', setdefaultusername = true) => {
     return sfdx.org.create({
